@@ -263,6 +263,12 @@ ev('K-02','kit',3,'쓰레기통의 면장갑','젖은 흰 면장갑 한 켤레. 
 ev('K-03','kit',3,'싱크 옆 젖은 행주','행주에 회색 울 보풀이 묻어 있고 옅게 번진 붉은 얼룩이 있다. 싱크 배수구에는 소매를 빤 듯한 물기가 남아 있다.');
 ev('T-01','ter',2,'테라스 문 센서','22:54 열림, 23:16 닫힘. 그 사이 다른 기록은 없다.');
 ev('T-02','ter',3,'소각통','소각통에 서류 조각이 남아 있다. 10년 전 촬영장 사고 기사의 일부다.');
+/* 감독과의 관계가 드러나는 카드 (진상 판정에는 쓰이지 않는 동기 단서) */
+ev('L-03','study',2,'감독의 수첩 (앞쪽)','강태식의 수첩 앞쪽. "서하윤 크레딧 요구 또 거절. 20년째 같은 얘기." "도현 대본 건, 공동 크레딧은 없다. 내가 쓴 걸로 한다."');
+ev('L-04','study',3,'감독의 수첩 (뒤쪽)','수첩 뒤쪽. "윤세헌 합의서 서명받을 것. 거부하면 기피 배우 명단 유지." "오만재 회계 열람 요청. 시사회 끝나면 투자자들에게 보고." 마지막 줄은 "여경 건, 변호사와 이야기 끝."');
+ev('B-03','bed',2,'침실 서랍의 명함','침실 서랍 안의 이혼 전문 변호사 명함. 뒷면에 감독의 글씨로 "11월 첫째 주 상담"이라고 적혀 있다.');
+ev('D-03','r203',3,'도현이 받은 메일 출력본','감독이 도현에게 보낸 메일 출력본. "공동 크레딧은 없다. 원고는 내가 쓴 걸로 정리한다. 불만이면 이 업계에서 일 못 한다."');
+ev('K-04','kit',3,'서류 가방 속 사고 경위서 사본','10년 전 촬영장 사고 경위서 사본. 사망 원인이 "스태프 개인 과실"로 적혀 있고 작성자란에 "고은솔"의 서명이 있다. 유족 연락처에도 고은솔의 번호가 적혀 있다.');
 
 /* ---------- CCTV 장면 그리기 ---------- */
 var G1='#bfe6cc',G2='#d7f3df',G3='#7fb394',LN='#34513f';
@@ -419,6 +425,7 @@ function roomLeft(room){return IT.some(function(it){return it.room===room&&!it.f
 function note(msg){app.insertAdjacentHTML('afterbegin','<div class="panel alert small" role="status">'+esc(msg)+'</div>');setTimeout(render,2600);}
 function fail(e){note('저장하지 못했습니다. '+((e&&e.code==='invalid_argument')?'이 링크에서 편집·참여 권한이 필요합니다.':'잠시 뒤 다시 시도하세요.'));}
 function addEv(o){o.g=G.gameId;o.by=myId;o.r=round();o.t=Date.now();return db.collection('events').add(o).catch(fail);}
+function doLeave(){db.doc('players/'+myId).delete().catch(fail);}
 function doJoin(){
   var n=(nameDraft||myName||'').trim();if(!n){note('이름을 입력하세요.');return;}
   myName=n;try{localStorage.setItem('ms_name',n);}catch(e){}
@@ -479,7 +486,7 @@ function lobby(){
   var me=!!P[myId];
   var h='<div class="panel"><h3>입장</h3><p class="muted small">강태식 감독이 시사실에서 숨졌다. 폭설로 길이 끊긴 별장에는 여섯 명뿐이다. 각자 인물 한 명을 맡아 범인을 찾는다. 인물은 시작할 때 무작위로 배정되고, 범인은 참가자 중 한 명이다.</p>';
   if(!me)h+='<div style="margin-top:10px"><label for="nm" class="small muted">이름</label><input id="nm" type="text" maxlength="12" value="'+esc(nameDraft||myName)+'" autocomplete="off"></div><div class="btns"><button class="btn primary" data-act="join">입장하기</button></div>';
-  else h+='<p class="small" style="margin-top:8px">입장했습니다. 다른 사람이 모이면 시작하세요.</p>';
+  else h+='<p class="small" style="margin-top:8px">입장했습니다. 다른 사람이 모이면 시작하세요.</p><div class="btns"><button class="btn" data-act="leave">나가기</button></div>';
   h+='</div><div class="sec">참가자 '+ids.length+'/6</div><div class="rows">';
   ids.forEach(function(id,i){h+='<div class="row static"><span class="k">'+(i+1)+'</span><span>'+esc(P[id].name)+(id===myId?' <span class="tag">나</span>':'')+'</span><span></span></div>';});
   if(!ids.length)h+='<p class="muted small">아직 아무도 없습니다.</p>';
@@ -758,7 +765,7 @@ app.addEventListener('click',function(ev0){
   var b=ev0.target.closest('[data-act]');if(!b||b.disabled)return;
   var a=b.getAttribute('data-act'),id=b.getAttribute('data-id');
   if(a==='tab'){tab=b.getAttribute('data-t');panel=null;render();return;}
-  if(a==='join')doJoin();else if(a==='start')doStart();else if(a==='next')doNext();else if(a==='end')doEnd();else if(a==='reset')doReset();else if(a==='fullreset'){if(!resetArm){resetArm=true;clearTimeout(resetT);resetT=setTimeout(function(){resetArm=false;render();},4000);render();}else{resetArm=false;clearTimeout(resetT);doFullReset();}}
+  if(a==='leave')doLeave();else if(a==='join')doJoin();else if(a==='start')doStart();else if(a==='next')doNext();else if(a==='end')doEnd();else if(a==='reset')doReset();else if(a==='fullreset'){if(!resetArm){resetArm=true;clearTimeout(resetT);resetT=setTimeout(function(){resetArm=false;render();},4000);render();}else{resetArm=false;clearTimeout(resetT);doFullReset();}}
   else if(a==='search')doSearch(b.getAttribute('data-room'));
   else if(a==='unlock')doUnlock(id);
   else if(a==='reveal')doReveal(id);
@@ -786,7 +793,7 @@ function snapDocs(s){var o={};s.docs.forEach(function(d){o[d.id]=d.data();});ret
 async function boot(){
   render();
   try{
-    if(!window.firebase||!window.FIREBASE_CONFIG||/PASTE/.test(JSON.stringify(window.FIREBASE_CONFIG)))throw new Error('config');
+    if(!window.firebase||!window.FIREBASE_CONFIG)throw new Error('config');
     firebase.initializeApp(window.FIREBASE_CONFIG);db=firebase.firestore();
     usr={id:async function(){return localId();},isOwner:async function(){try{return new URLSearchParams(location.search).get('h')===window.HOST_KEY;}catch(e){return false;}}};
   }catch(e){db=null;}
