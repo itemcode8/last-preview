@@ -392,7 +392,7 @@ function evs(){return EV.filter(function(e){return G&&e.g===G.gameId;});}
 function pname(id){return (P[id]&&P[id].name)||'참가자';}
 function who(id){var c=assign()[id];return c?CH[c].n+'('+pname(id)+')':pname(id);}
 function myChar(){var m=assign();return viewAs||m[myId]||null;}
-function isHost(){return G&&(G.hostId===myId||isOwner);}
+function isHost(){return !!(G&&isOwner);}
 var isOwner=false;
 function round(){return G&&G.round?G.round:1;}
 function foundEv(id){return evs().filter(function(e){return e.k==='find'&&e.item===id;})[0];}
@@ -486,12 +486,12 @@ function lobby(){
   var me=!!P[myId];
   var h='<div class="panel"><h3>입장</h3><p class="muted small">강태식 감독이 시사실에서 숨졌다. 폭설로 길이 끊긴 별장에는 여섯 명뿐이다. 각자 인물 한 명을 맡아 범인을 찾는다. 인물은 시작할 때 무작위로 배정되고, 범인은 참가자 중 한 명이다.</p>';
   if(!me)h+='<div style="margin-top:10px"><label for="nm" class="small muted">이름</label><input id="nm" type="text" maxlength="12" value="'+esc(nameDraft||myName)+'" autocomplete="off"></div><div class="btns"><button class="btn primary" data-act="join">입장하기</button></div>';
-  else h+='<p class="small" style="margin-top:8px">입장했습니다. 다른 사람이 모이면 시작하세요.</p><div class="btns"><button class="btn" data-act="leave">나가기</button></div>';
+  else h+='<p class="small" style="margin-top:8px">입장했습니다. 방장이 게임을 시작할 때까지 기다려 주세요.</p><div class="btns"><button class="btn" data-act="leave">나가기</button></div>';
   h+='</div><div class="sec">참가자 '+ids.length+'/6</div><div class="rows">';
   ids.forEach(function(id,i){h+='<div class="row static"><span class="k">'+(i+1)+'</span><span>'+esc(P[id].name)+(id===myId?' <span class="tag">나</span>':'')+'</span><span></span></div>';});
   if(!ids.length)h+='<p class="muted small">아직 아무도 없습니다.</p>';
   h+='</div>';
-  if(me||isOwner)h+='<div class="btns"><button class="btn primary" data-act="start">게임 시작</button></div><p class="small muted">6명이 모이면 시작하세요. 6명 미만이면 시험 모드로, 맡지 않은 인물이 생깁니다.'+(!me?' 입장하지 않고 시작하면 인물을 맡지 않는 방장(관전자)으로 진행합니다. 방장은 진상을 알 수 없고, 라운드 진행과 결과 공개만 맡습니다.':'')+'</p>';
+  if(isOwner)h+='<div class="btns"><button class="btn primary" data-act="start">게임 시작</button></div><p class="small muted">6명이 모이면 시작하세요. 6명 미만이면 시험 모드로, 맡지 않은 인물이 생깁니다.'+(!me?' 입장하지 않고 시작하면 인물을 맡지 않는 방장(관전자)으로 진행합니다. 방장은 진상을 알 수 없고, 라운드 진행과 결과 공개만 맡습니다.':'')+'</p>';
   return h;
 }
 function secCards(c){
